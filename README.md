@@ -45,6 +45,27 @@ Development supported by Kiro/Claude in addition to functional testing and code 
 
 ---
 
+## Architecture
+
+All complex logic lives in `_BED_FAN_MANAGE` — a regular gcode macro. The `[delayed_gcode]` blocks are intentionally minimal (one line each) to avoid Klipper silent-failure issues with complex Jinja in delayed_gcode bodies. Heatsoak fan control is driven from `CHAMBER_HEATSOAK`, called by `PRINT_START`.
+
+```
+PRINT_START
+  └── CHAMBER_HEATSOAK          # heatsoak loop with fan management
+        ├── _BED_FAN_MANAGE     # core fan logic (HEATSOAK mode)
+        ├── _CHAMBER_READY      # checks temp, manages confirm count
+        ├── _HEATSOAK_RESULT    # reports outcome
+        └── _DRAIN_LOOP_WAIT    # adaptive timing
+
+bedfanheatloop (delayed_gcode)
+  └── _BED_FAN_MANAGE           # print-time maintenance (HEATSOAK mode)
+
+bedfancoolloop (delayed_gcode)
+  └── _BED_FAN_MANAGE           # cooldown management (COOLDOWN mode)
+```
+
+---
+
 ## Files
 
 | File | Description |
@@ -142,27 +163,6 @@ TURN_OFF_HEATERS
 {% else %}
     SET_DISPLAY_TEXT MSG="Print Complete"
 {% endif %}
-```
-
----
-
-## Architecture
-
-All complex logic lives in `_BED_FAN_MANAGE` — a regular gcode macro. The `[delayed_gcode]` blocks are intentionally minimal (one line each) to avoid Klipper silent-failure issues with complex Jinja in delayed_gcode bodies. Heatsoak fan control is driven from `CHAMBER_HEATSOAK`, called by `PRINT_START`.
-
-```
-PRINT_START
-  └── CHAMBER_HEATSOAK          # heatsoak loop with fan management
-        ├── _BED_FAN_MANAGE     # core fan logic (HEATSOAK mode)
-        ├── _CHAMBER_READY      # checks temp, manages confirm count
-        ├── _HEATSOAK_RESULT    # reports outcome
-        └── _DRAIN_LOOP_WAIT    # adaptive timing
-
-bedfanheatloop (delayed_gcode)
-  └── _BED_FAN_MANAGE           # print-time maintenance (HEATSOAK mode)
-
-bedfancoolloop (delayed_gcode)
-  └── _BED_FAN_MANAGE           # cooldown management (COOLDOWN mode)
 ```
 
 ---
