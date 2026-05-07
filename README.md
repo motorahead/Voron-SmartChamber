@@ -50,7 +50,6 @@ Development supported by Kiro/Claude in addition to functional testing and code 
 | File | Description |
 |------|-------------|
 | `smart_chamber.cfg` | Main script — include this in your `printer.cfg` |
-| `stealthburner_led_effects.cfg` | Optional LED effects companion file |
 
 ---
 
