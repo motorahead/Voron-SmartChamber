@@ -212,14 +212,6 @@ Chamber Heatsoak: 58.4C / 63.0C fans=75%
 Cooldown: bed=114.8C chamber=63.5C fans=100%
 ```
 
-### Reading the Console
-
-Messages appear in:
-- **Mainsail** → Console tab
-- **KlipperScreen** → popup notifications (echo messages)
-- **klippy.log** → searchable with `grep "M118" ~/printer_data/logs/klippy.log`
-- **Voron Log Analyzer** → Milestone Timeline table and chart annotations
-
 ### Troubleshooting
 
 **Fans never start during heatsoak**
