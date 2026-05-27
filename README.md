@@ -7,6 +7,14 @@ Development supported by Kiro/Claude in addition to functional testing and code 
 
 ---
 
+## Temperature Profile
+
+A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldown:
+
+![Temperature Profile](Temp%20Profile.png)
+
+---
+
 ## Features
 
 ### Heat-Up Efficiency — "Not Heating at Expected Rate" Protection
