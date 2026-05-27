@@ -24,7 +24,7 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 
 ### Proportional Chamber Temperature Management
 - Fans ramp up in configurable steps (default 5%) until chamber target is reached
-- **30 second stable confirmation** required before proceeding to print — avoids false triggers
+- **60 second stable confirmation** required before proceeding to print — avoids false triggers
 - Adaptive loop timing: faster checks when recovering, slower when stable (damping)
 - Deadband threshold prevents unnecessary fan adjustments in the sweet spot
 
@@ -68,9 +68,8 @@ PRINT_START
   └── CHAMBER_HEATSOAK
         ├── _BED_FAN_MANAGE     # Adjusts fan speed: ramps up toward target, throttles back
         │                       # if bed loses temp, or bleeds speed if chamber overshoots
-        ├── _CHAMBER_READY      # Checks if chamber is at target. Requires 2 consecutive
-        │                       # passes (~30s) before declaring stable — avoids false triggers
-        │                       # from brief temperature spikes. Resets counter if temp drops.
+        ├── _CHAMBER_READY      # Checks if chamber is at target. 
+        │                       # avoids false triggers from brief temperature spikes. Resets counter if temp drops.
         ├── _CHAMBER_HEATSOAK_RESULT  # Reports "complete" or "timed out" to console
         └── _DRAIN_LOOP_WAIT    # Waits 15s per tick during warmup; switches to 100ms
                                 # once chamber is confirmed stable, so the loop exits fast
@@ -143,7 +142,7 @@ SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_confirm_count VALUE=0
     SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_target VALUE={target_chamber}
     M190 S{target_bed}                    # fans stay OFF during heat-up
     {% if target_chamber > 0 %}
-        CHAMBER_HEATSOAK                  # ramps fans, waits for 30s stable, then proceeds
+        CHAMBER_HEATSOAK                  # ramps fans, waits for 60s stable, then proceeds
     {% endif %}
     UPDATE_DELAYED_GCODE ID=bedfanheatloop DURATION=15
 {% else %}
@@ -199,9 +198,11 @@ Adds a message when the fan logic reacts to a change:
 Bed fans off: bed temp low (108.2C / 115.0C)
 Bed fans slow: bed recovering (113.1C / 115.0C)
 Bed fans off: bed target below threshold
-Chamber at target: 63.2C / 63.0C fans=40% (confirm 1/2)
-Chamber at target: 63.2C / 63.0C fans=40% (confirm 2/2)
-Chamber stable for 30s - proceeding
+Chamber at target: 63.2C / 63.0C fans=40% (confirm 1/4)
+Chamber at target: 63.2C / 63.0C fans=40% (confirm 2/4)
+Chamber at target: 63.2C / 63.0C fans=40% (confirm 3/4)
+Chamber at target: 63.2C / 63.0C fans=40% (confirm 4/4)
+Chamber stable for 60s - proceeding
 ```
 
 **Level 2 — Chamber/Fan full per-tick output**
