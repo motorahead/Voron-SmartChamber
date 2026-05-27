@@ -45,32 +45,12 @@ Development supported by Kiro/Claude in addition to functional testing and code 
 
 ---
 
-## Architecture
-
-All complex logic lives in `_BED_FAN_MANAGE` — a regular gcode macro. The `[delayed_gcode]` blocks are intentionally minimal (one line each) to avoid Klipper silent-failure issues with complex Jinja in delayed_gcode bodies. Heatsoak fan control is driven from `CHAMBER_HEATSOAK`, called by `PRINT_START`.
-
-```
-PRINT_START
-  └── CHAMBER_HEATSOAK          # heatsoak loop with fan management
-        ├── _BED_FAN_MANAGE     # core fan logic (HEATSOAK mode)
-        ├── _CHAMBER_READY      # checks temp, manages confirm count
-        ├── _HEATSOAK_RESULT    # reports outcome
-        └── _DRAIN_LOOP_WAIT    # adaptive timing
-
-bedfanheatloop (delayed_gcode)
-  └── _BED_FAN_MANAGE           # print-time maintenance (HEATSOAK mode)
-
-bedfancoolloop (delayed_gcode)
-  └── _BED_FAN_MANAGE           # cooldown management (COOLDOWN mode)
-```
-
----
-
 ## Files
 
 | File | Description |
 |------|-------------|
 | `smart_chamber.cfg` | Main script — include this in your `printer.cfg` |
+| `stealthburner_led_effects.cfg` | Optional LED effects companion file |
 
 ---
 
@@ -163,6 +143,131 @@ TURN_OFF_HEATERS
 {% else %}
     SET_DISPLAY_TEXT MSG="Print Complete"
 {% endif %}
+```
+
+---
+
+## Debugging
+
+### Debug Verbosity Levels
+
+Set `variable_debug` in `[_BEDFANVARS]` to control console output:
+
+```ini
+variable_debug: 0   # Silent — milestones only
+variable_debug: 1   # Normal — key state changes (default)
+variable_debug: 2   # Full — every loop tick with temps and fan %
+```
+
+### What Each Level Shows
+
+**Level 0 — Milestones only**
+These messages always print regardless of debug level:
+```
+[PRINT_START] Bed ready. Starting chamber heatsoak to 63C
+Bed stabilizing before fans start (60s)
+Chamber heatsoak complete
+Chamber heatsoak timed out after 30 min - proceeding anyway
+Bed fans: starting cooldown loop
+Bed fans off: cooldown complete
+```
+
+**Level 1 — Normal status** (default)
+Adds state-change messages when the fan logic reacts:
+```
+Bed fans off: bed temp low (108.2C / 115.0C)
+Bed fans slow: bed recovering (113.1C / 115.0C)
+Bed fans off: bed target below threshold
+Chamber at target: 63.2C / 63.0C fans=40% (confirm 1/2)
+Chamber at target: 63.2C / 63.0C fans=40% (confirm 2/2)
+Chamber stable for 30s - proceeding
+```
+
+**Level 2 — Full debug**
+Adds a message every loop tick — useful for tuning intervals and fan ramp behavior:
+```
+Chamber Heatsoak: 58.4C / 63.0C fans=75%
+Cooldown: bed=114.8C chamber=63.5C fans=100%
+```
+
+### Reading the Console
+
+Messages appear in:
+- **Mainsail** → Console tab
+- **KlipperScreen** → popup notifications (echo messages)
+- **klippy.log** → searchable with `grep "M118" ~/printer_data/logs/klippy.log`
+- **Voron Log Analyzer** → Milestone Timeline table and chart annotations
+
+### Common Issues
+
+**Fans never start during heatsoak**
+- Check `variable_fan` matches your `[fan_generic]` name exactly (case-sensitive)
+- Check `variable_chamber_sensor` matches your `[temperature_sensor]` name
+- Verify bed target is ≥ `variable_heating_threshold` (default 90°C)
+- Enable `variable_debug: 2` and watch the console
+
+**"Not heating at expected rate" error**
+- Fans are throttling correctly but bed is still losing temp
+- Reduce `variable_bed_throttle_slow` (e.g. `0.5`) to throttle sooner
+- Reduce `variable_bed_throttle_off` (e.g. `2.0`) to kill fans sooner
+- Check for drafts or enclosure leaks
+
+**Heatsoak times out (30 min)**
+- Chamber target may be too high for your enclosure
+- Check `variable_chamber_target_default` — lower it if needed
+- Verify chamber sensor is reading correctly
+- Enable `variable_debug: 2` to watch chamber temp climb
+
+**Cooldown never completes**
+- Check `variable_cooling_threshold` — bed must drop below this (default 40°C)
+- Long cooldowns are normal for ABS — can take 60–90 min
+- Use the Voron Log Analyzer to visualize the full cooldown curve
+
+**Fans stuck on after print**
+- `TURN_OFF_HEATERS` starts the cooldown loop automatically
+- Fans will shut off once bed reaches `variable_cooling_threshold`
+- Run `TEST_FAN_COOLDOWN` to manually trigger and observe
+
+### Testing Macros
+
+```gcode
+TEST_BED_FANS       # Starts the heatsoak fan loop without a print
+                    # Uses chamber_target_default as the target
+                    # Safe to run with bed heated
+
+TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS → starts cooldown loop
+                    # Observe fan behavior and console output
+```
+
+### Log Analysis
+
+Use the **Voron Log Analyzer** (`Voron Log Analyzer/voron_log_analyzer.html`) to visualize a full session:
+
+1. Load `klippy.log` + `KlipperScreen.log`
+2. The **Milestone Timeline** shows all echo messages with timestamps
+3. The **Temperature chart** shows heatsoak (blue) and cooldown (orange) phases
+4. Filter milestones by **CHAMBER** or **COOLDOWN** category to focus on fan events
+5. Use **All Sessions** view to compare behavior across multiple prints
+
+---
+
+## Architecture
+
+All complex logic lives in `_BED_FAN_MANAGE` — a regular gcode macro. The `[delayed_gcode]` blocks are intentionally minimal (one line each) to avoid Klipper silent-failure issues with complex Jinja in delayed_gcode bodies. Heatsoak fan control is driven from `CHAMBER_HEATSOAK`, called by `PRINT_START`.
+
+```
+PRINT_START
+  └── CHAMBER_HEATSOAK          # heatsoak loop with fan management
+        ├── _BED_FAN_MANAGE     # core fan logic (HEATSOAK mode)
+        ├── _CHAMBER_READY      # checks temp, manages confirm count
+        ├── _HEATSOAK_RESULT    # reports outcome
+        └── _DRAIN_LOOP_WAIT    # adaptive timing
+
+bedfanheatloop (delayed_gcode)
+  └── _BED_FAN_MANAGE           # print-time maintenance (HEATSOAK mode)
+
+bedfancoolloop (delayed_gcode)
+  └── _BED_FAN_MANAGE           # cooldown management (COOLDOWN mode)
 ```
 
 ---
