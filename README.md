@@ -109,7 +109,7 @@ Edit the `[_BEDFANVARS]` block at the top of `smart_chamber.cfg`. The key variab
 |----------|-------------|
 | `variable_fan` | Must match your `[fan_generic]` name exactly (case-sensitive) |
 | `variable_chamber_sensor` | Must match your `[temperature_sensor]` name exactly |
-| `variable_heating_threshold` | Min bed temp to enable fans — set to your ABS/ASA temp (default `90`) |
+| `variable_heating_threshold` | Min bed temp to enable fans |
 
 All other variables are pre-tuned for a Voron 2.4 350mm with 4 bed fans. Adjust as needed — each has an inline comment explaining its effect.
 
