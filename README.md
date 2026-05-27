@@ -109,6 +109,8 @@ variable_cooldown_complete_effect:  "status_part_ready"       # or "off"
 
 ## PRINT_START Setup
 
+> 💡 **Example:** See a complete working `PRINT_START` implementation at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
+
 ### a) At the very top of your PRINT_START, add the reset block:
 
 ```jinja
