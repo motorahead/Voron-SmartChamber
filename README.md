@@ -27,6 +27,7 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 - **60 second stable confirmation** required before proceeding to print — avoids false triggers
 - Adaptive loop timing: faster checks when recovering, slower when stable (damping)
 - Deadband threshold prevents unnecessary fan adjustments in the sweet spot
+- Configurable minimum acceptable chamber temperature — cancels print if chamber cannot reach this target after a heatsoak timeout
 
 ### Dynamic Print-Time Maintenance
 - Bed fan loop continues autonomously during the entire print
@@ -68,7 +69,8 @@ PRINT_START
   └── CHAMBER_HEATSOAK
         ├── _BED_FAN_MANAGE     # Adjusts fan speed: ramps up toward target, throttles back
         │                       # if bed loses temp, or bleeds speed if chamber overshoots
-        ├── _CHAMBER_READY      # Checks if chamber is at target. 
+        ├── _CHAMBER_READY      # Checks if chamber is at target. Requires chamber_reached_delay
+        │                       # consecutive passes (default 4 × 15s = 60s) before declaring stable —
         │                       # avoids false triggers from brief temperature spikes. Resets counter if temp drops.
         ├── _CHAMBER_HEATSOAK_RESULT  # Reports "complete" or "timed out" to console
         └── _DRAIN_LOOP_WAIT    # Waits 15s per tick during warmup; switches to 100ms
@@ -117,6 +119,9 @@ Edit the `[_BEDFANVARS]` block at the top of `smart_chamber.cfg`. The key variab
 | `variable_fan` | Must match your `[fan_generic]` name exactly (case-sensitive) |
 | `variable_chamber_sensor` | Must match your `[temperature_sensor]` name exactly |
 | `variable_heating_threshold` | Min bed temp to enable fans |
+| `variable_chamber_target_default` | Fallback chamber target if slicer sends `CHAMBER=0`. Set to your typical ABS/ASA target. |
+| `variable_chamber_min_start` | Min chamber temp to allow print after heatsoak timeout. `0` = disabled — print starts regardless. |
+| `variable_debug` | `0` = milestones only, `1` = state changes, `2` = full per-tick output |
 
 All other variables are pre-tuned for a Voron 2.4 350mm with 4 bed fans. Adjust as needed — each has an inline comment explaining its effect.
 
@@ -225,6 +230,7 @@ Cooldown: bed=114.8C chamber=63.5C fans=100%
 - Lower `variable_chamber_target_default` and try again
 - Verify the chamber sensor is reading correctly in Mainsail
 - Set `variable_debug: 2` to watch the temp climb tick by tick
+- Set `variable_chamber_min_start` to cancel the print if the chamber is too cold to proceed safely
 
 **Bed still triggers "not heating at expected rate"**
 - The script throttles fans when bed loses temp, but your thresholds may need tightening
