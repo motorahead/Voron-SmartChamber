@@ -56,7 +56,7 @@ PRINT_START
   +-- CHAMBER_HEATSOAK
         +-- _BED_FAN_MANAGE           # Ramps fans toward target, throttles if bed loses temp
         +-- _CHAMBER_READY            # Requires chamber_reached_delay consecutive passes at target
-        ¦                             # (default 4 × 15s = 60s) before declaring stable
+        |                             # (default 4 x 15s = 60s) before declaring stable
         +-- _CHAMBER_HEATSOAK_RESULT  # Reports complete/timed out. Cancels if below chamber_min_start
         +-- _DRAIN_LOOP_WAIT          # 15s per tick during warmup, 100ms once stable to exit fast
 ```
@@ -118,7 +118,7 @@ All other variables are pre-tuned for a Voron 2.4 350mm with 4 bed fans. Each ha
 
 ### 2. PRINT_START
 
-> ?? See a complete working example at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
+> 💡 See a complete working example at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
 
 **a) At the very top of PRINT_START, add the reset block:**
 
