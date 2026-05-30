@@ -223,7 +223,7 @@ TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS ? starts cooldown loop
 
 ---
 
-- Voron 2.4 350mm  -  Leviathan V1.1, SB2209 CANBUS, 4x bed fans (Nevermore)
+- Voron 2.4 350mm  -  Leviathan V1.1, SB2209 CANBUS, 4x bed fans (THE FILTER)
 
 ---
 
