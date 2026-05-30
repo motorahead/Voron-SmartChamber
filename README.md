@@ -37,6 +37,7 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 | **Min Start Temp** | Optional minimum chamber temp — cancels print if not reached after timeout |
 | **PLA Safety** | Fans stay off entirely for low-temp materials |
 | **LED Hooks** | Optional status macro triggers at heatsoak, cooldown, and complete |
+| **Universal Compatibility** | Any enclosed printer (Voron 2.4, Trident, V0, etc.) — works with Nevermore, bed fans, or any `[fan_generic]` output |
 
 ---
 
