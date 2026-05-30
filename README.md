@@ -37,7 +37,7 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 | **Print-Time Maintenance** | Fan loop and bed protection continue autonomously throughout the entire print |
 | **Adaptive Intervals** | Loop timing adjusts by state - faster when recovering, slower when stable or bleeding |
 | **Auto Cooldown** | Cooldown starts on any heaters-off event - print end, cancel, or error - no manual trigger needed |
-| **Cooldown Management** | Delta-based fan speed during cooldown - full speed → slow → off |
+| **Cooldown Management** | Delta-based fan speed during cooldown - full speed ? slow ? off |
 | **Clean State on Start** | Reset block clears stale state from previous cancelled or failed prints |
 | **Single Config Block** | All tunable parameters in one `[_BEDFANVARS]` section |
 | **PLA Safety** | Fans stay off entirely for low-temp materials - no interference with PLA/PETG |
@@ -53,26 +53,26 @@ All fan logic lives in a single macro (`_BED_FAN_MANAGE`) called by minimal `[de
 
 ```
 PRINT_START
-  └── CHAMBER_HEATSOAK
-        ├── _BED_FAN_MANAGE           # Ramps fans toward target, throttles if bed loses temp
-        ├── _CHAMBER_READY            # Requires chamber_reached_delay consecutive passes at target
-        │                             # (default 4 × 15s = 60s) before declaring stable
-        ├── _CHAMBER_HEATSOAK_RESULT  # Reports complete/timed out. Cancels if below chamber_min_start
-        └── _DRAIN_LOOP_WAIT          # 15s per tick during warmup, 100ms once stable to exit fast
+  +-- CHAMBER_HEATSOAK
+        +-- _BED_FAN_MANAGE           # Ramps fans toward target, throttles if bed loses temp
+        +-- _CHAMBER_READY            # Requires chamber_reached_delay consecutive passes at target
+        ¦                             # (default 4 × 15s = 60s) before declaring stable
+        +-- _CHAMBER_HEATSOAK_RESULT  # Reports complete/timed out. Cancels if below chamber_min_start
+        +-- _DRAIN_LOOP_WAIT          # 15s per tick during warmup, 100ms once stable to exit fast
 ```
 
 **2. Print-time maintenance** — background loop keeps chamber at target throughout the print:
 
 ```
-bedfanheatloop  ──►  _BED_FAN_MANAGE (HEATSOAK mode)
+bedfanheatloop  --?  _BED_FAN_MANAGE (HEATSOAK mode)
   (fires every 15–30s)   Maintains chamber temp, protects bed from heat loss
 ```
 
 **3. Cooldown** — triggered automatically by `TURN_OFF_HEATERS`:
 
 ```
-bedfancoolloop  ──►  _BED_FAN_MANAGE (COOLDOWN mode)
-  (fires every 5s)       Full speed → slow → off, based on bed/chamber delta
+bedfancoolloop  --?  _BED_FAN_MANAGE (COOLDOWN mode)
+  (fires every 5s)       Full speed ? slow ? off, based on bed/chamber delta
 ```
 
 ---
@@ -105,9 +105,10 @@ All other variables are pre-tuned for a Voron 2.4 350mm with 4 bed fans. Each ha
    ```
 3. Edit `[_BEDFANVARS]` to match your printer (see Configuration above)
 
+
 ### 2. PRINT_START
 
-> 💡 See a complete working example at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
+> ?? See a complete working example at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
 
 **a) At the very top of PRINT_START, add the reset block:**
 
@@ -183,7 +184,7 @@ Cooldown: bed=114.8C chamber=63.5C fans=100%
 
 **Fans never start during heatsoak**
 - Verify `variable_fan` and `variable_chamber_sensor` match your cfg names exactly (case-sensitive)
-- Verify bed target is ≥ `variable_heating_threshold`
+- Verify bed target is = `variable_heating_threshold`
 - Set `variable_debug: 2` and watch the console
 
 **Heatsoak times out**
@@ -207,7 +208,7 @@ TEST_BED_FANS       # Starts the heatsoak fan loop without a print
                     # Uses chamber_target_default as the target
                     # Safe to run with bed heated
 
-TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS → starts cooldown loop
+TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS ? starts cooldown loop
                     # Observe fan behavior and console output
 ```
 
@@ -215,14 +216,13 @@ TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS → starts cooldown loop
 
 ## Known Limitations
 
-**Heatsoak is a blocking operation — cancel does not interrupt it immediately.**
+**The cancel button does not interrupt heatsoak — it queues behind the loop.**
 
-The heatsoak loop pre-queues all iterations when `CHAMBER_HEATSOAK` is called. Hitting cancel in Mainsail queues the cancel request *behind* the remaining loop iterations. The cancel button will spin until the loop finishes naturally (up to 30 min if chamber never reaches target).
+Heatsoak is a blocking gcode loop. All iterations are pre-queued when `CHAMBER_HEATSOAK` is called. Mainsail's cancel button, console commands, and macro calls all go into the same queue — they wait behind the loop and don't execute until it finishes naturally (up to 30 min if chamber never reaches target).
 
-**Escape hatch:** Use `FIRMWARE_RESTART` from Mainsail to abort immediately. This is the only way to stop the heatsoak mid-loop. The printer will need to re-home on the next print.
+**Escape hatch: use `FIRMWARE_RESTART` from Mainsail for an immediate hard stop.** The printer will need to re-home on the next print.
 
-This is a Klipper macro architecture constraint — there is no `while` loop construct, so blocking waits are implemented as pre-queued `{% for %}` loops. A PAUSE/RESUME-based redesign would allow clean cancellation but introduces conflicts with existing PAUSE/RESUME macros and shows the printer as "paused" during heatsoak.
-
+A PAUSE/RESUME-based redesign would allow the cancel button to work natively — this is a known future improvement.
 ---
 
 - Voron 2.4 350mm — Leviathan V1.1, SB2209 CANBUS, 4x bed fans (Nevermore)
@@ -231,4 +231,4 @@ This is a Klipper macro architecture constraint — there is no `while` loop con
 
 ## License
 
-MIT
+[GPL v3](LICENSE)
