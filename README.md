@@ -103,7 +103,7 @@ All other variables are pre-tuned for a Voron 2.4 350mm with 4 bed fans. Each ha
    ```
 3. Edit `[_BEDFANVARS]` to match your printer (see Configuration above)
 
-### 2. PRINT_START setup
+### 2. PRINT_START
 
 > 💡 See a complete working example at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
 
