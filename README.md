@@ -3,14 +3,14 @@
 Autonomous chamber temperature management for Klipper-based 3D printers.
 
 Several approaches to bed fan control exist in the Voron community.
-[EricZimmerman's fake heater method](https://github.com/EricZimmerman/Voron24/blob/master/config/fans.cfg) uses a `[heater_generic]` block with the chamber thermistor to drive fans via Klipper's PID controller — minimal macro complexity, but no bed protection or heatsoak gating.
+[EricZimmerman's fake heater method](https://github.com/EricZimmerman/Voron24/blob/master/config/fans.cfg) uses a `[heater_generic]` block with the chamber thermistor to drive fans via Klipper's PID controller  -  minimal macro complexity, but no bed protection or heatsoak gating.
 [Ellis bedfans.cfg](https://github.com/VoronDesign/VoronUsers/tree/8e5067f4f6457da8a552983dd210ec48c40be2ca/printer_mods/Ellis/Bed_Fans/Klipper_Macros) introduced the macro-based approach with bed protection
 [3DPrintDemon's implementation](https://github.com/3DPrintDemon/Demon_Klipper_Essentials_Unified) expanded on that as part of a broader print management system.
 
 SmartChamber builds on these ideas with a focus on closed-loop chamber temperature control:
 Fans ramp proportionally toward a configurable chamber target rather than switching between fixed speeds
 A stable confirmation period is required before the print starts
-Bed protection remains active throughout the print — not just during heatsoak — and cooldown is managed automatically based on the bed/chamber temperature delta.
+Bed protection remains active throughout the print  -  not just during heatsoak  -  and cooldown is managed automatically based on the bed/chamber temperature delta.
 All logic lives in a single drop-in cfg file.
 
 Development supported by Kiro/Claude in addition to functional testing and code verification.
@@ -19,7 +19,7 @@ Development supported by Kiro/Claude in addition to functional testing and code 
 
 ## Temperature Profile
 
-A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldown:
+A typical ABS print session  -  bed heat-up, chamber heatsoak, print, and cooldown:
 
 ![Temperature Profile](Temp%20Profile.png)
 
@@ -37,7 +37,7 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 | **Print-Time Maintenance** | Fan loop and bed protection continue autonomously throughout the entire print |
 | **Adaptive Intervals** | Loop timing adjusts by state - faster when recovering, slower when stable or bleeding |
 | **Auto Cooldown** | Cooldown starts on any heaters-off event - print end, cancel, or error - no manual trigger needed |
-| **Cooldown Management** | Delta-based fan speed during cooldown - full speed ? slow ? off |
+| **Cooldown Management** | Delta-based fan speed during cooldown - Full speed --> slow --> off, based on bed/chamber delta
 | **Clean State on Start** | Reset block clears stale state from previous cancelled or failed prints |
 | **Single Config Block** | All tunable parameters in one `[_BEDFANVARS]` section |
 | **PLA Safety** | Fans stay off entirely for low-temp materials - no interference with PLA/PETG |
@@ -47,9 +47,9 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 
 ## Architecture
 
-All fan logic lives in a single macro (`_BED_FAN_MANAGE`) called by minimal `[delayed_gcode]` blocks — one line each. This avoids Klipper's silent failure issue with complex Jinja inside delayed_gcode bodies.
+All fan logic lives in a single macro (`_BED_FAN_MANAGE`) called by minimal `[delayed_gcode]` blocks  -  one line each. This avoids Klipper's silent failure issue with complex Jinja inside delayed_gcode bodies.
 
-**1. Heatsoak** — `PRINT_START` calls `CHAMBER_HEATSOAK` after bed reaches temperature:
+**1. Heatsoak**  -  `PRINT_START` calls `CHAMBER_HEATSOAK` after bed reaches temperature:
 
 ```
 PRINT_START
@@ -61,27 +61,27 @@ PRINT_START
         +-- _DRAIN_LOOP_WAIT          # 15s per tick during warmup, 100ms once stable to exit fast
 ```
 
-**2. Print-time maintenance** — background loop keeps chamber at target throughout the print:
+**2. Print-time maintenance**  -  background loop keeps chamber at target throughout the print:
 
 ```
-bedfanheatloop  --?  _BED_FAN_MANAGE (HEATSOAK mode)
-  (fires every 15–30s)   Maintains chamber temp, protects bed from heat loss
+bedfanheatloop  -->  _BED_FAN_MANAGE (HEATSOAK mode)
+  (fires every 15-30s)   Maintains chamber temp, protects bed from heat loss
 ```
 
-**3. Cooldown** — triggered automatically by `TURN_OFF_HEATERS`:
+**3. Cooldown** - triggered automatically by `TURN_OFF_HEATERS`:
 
 ```
-bedfancoolloop  --?  _BED_FAN_MANAGE (COOLDOWN mode)
-  (fires every 5s)       Full speed ? slow ? off, based on bed/chamber delta
+bedfancoolloop  -->  _BED_FAN_MANAGE (COOLDOWN mode)
+  (fires every 5s)       Full speed --> slow --> off, based on bed/chamber delta
 ```
 
 ---
 
 ## Known Limitations
 
-**The cancel button does not interrupt heatsoak — it queues behind the loop.**
+**The cancel button does not interrupt heatsoak  -  it queues behind the loop.**
 
-Heatsoak is a blocking gcode loop. All iterations are pre-queued when `CHAMBER_HEATSOAK` is called. Mainsail's cancel button, console commands, and macro calls all go into the same queue — they wait behind the loop and don't execute until it finishes naturally (up to 30 min if chamber never reaches target).
+Heatsoak is a blocking gcode loop. All iterations are pre-queued when `CHAMBER_HEATSOAK` is called. Mainsail's cancel button, console commands, and macro calls all go into the same queue  -  they wait behind the loop and don't execute until it finishes naturally (up to 30 min if chamber never reaches target).
 
 **Escape hatch: use `FIRMWARE_RESTART` from Mainsail for an immediate hard stop.** The printer will need to re-home on the next print.
 
@@ -95,7 +95,7 @@ Edit the `[_BEDFANVARS]` block at the top of `smart_chamber.cfg`. The key variab
 |----------|-------------|
 | `variable_fan` | Must match your `[fan_generic]` name exactly (case-sensitive) |
 | `variable_chamber_sensor` | Must match your `[temperature_sensor]` name exactly |
-| `variable_heating_threshold` | Min bed temp to enable fans — set to your ABS/ASA bed temp |
+| `variable_heating_threshold` | Min bed temp to enable fans  -  set to your ABS/ASA bed temp |
 | `variable_chamber_target_default` | Fallback chamber target if slicer sends `CHAMBER=0` |
 | `variable_chamber_min_start` | Min chamber temp to allow print after heatsoak timeout. `0` = disabled |
 | `variable_debug` | `0` = milestones only, `1` = state changes, `2` = full per-tick output |
@@ -129,11 +129,11 @@ SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_confirm_count VALUE=0
 
 **b) Replace your existing M190 and bed soak logic:**
 
-> M190 is called internally — do not add it separately.
+> M190 is called internally  -  do not add it separately.
 
 ```jinja
 {% if target_bed >= printer["gcode_macro _BEDFANVARS"].heating_threshold %}
-    # High-temp path: ABS/ASA — heatsoak with autonomous fan management
+    # High-temp path: ABS/ASA  -  heatsoak with autonomous fan management
     SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_target VALUE={target_chamber}
     M190 S{target_bed}                    # fans stay OFF during heat-up
     {% if target_chamber > 0 %}
@@ -141,7 +141,7 @@ SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_confirm_count VALUE=0
     {% endif %}
     UPDATE_DELAYED_GCODE ID=bedfanheatloop DURATION=15
 {% else %}
-    # Low-temp path: PLA/PETG — no fans, fixed soak
+    # Low-temp path: PLA/PETG  -  no fans, fixed soak
     M190 S{target_bed}
     G4 P300000                            # 5 min soak
 {% endif %}
@@ -149,7 +149,7 @@ SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_confirm_count VALUE=0
 
 ### 3. PRINT_END
 
-`TURN_OFF_HEATERS` automatically starts the cooldown loop — no extra steps needed. Optionally show a status message:
+`TURN_OFF_HEATERS` automatically starts the cooldown loop  -  no extra steps needed. Optionally show a status message:
 
 ```jinja
 TURN_OFF_HEATERS
@@ -166,17 +166,17 @@ TURN_OFF_HEATERS
 
 Set `variable_debug` in `[_BEDFANVARS]` to control console output:
 
-**Level 0** — milestones only (always shown):
+**Level 0**  -  milestones only (always shown):
 ```
 [PRINT_START] Bed ready. Starting chamber heatsoak to 63C
 Bed stabilizing before fans start (60s)
 Chamber heatsoak complete
-Chamber heatsoak timed out — 60.1C — proceeding anyway
+Chamber heatsoak timed out  -  60.1C  -  proceeding anyway
 Bed fans: starting cooldown loop
 Bed fans off: cooldown complete
 ```
 
-**Level 1** — adds state changes:
+**Level 1**  -  adds state changes:
 ```
 Bed fans off: bed temp low (108.2C / 115.0C)
 Bed fans slow: bed recovering (113.1C / 115.0C)
@@ -184,7 +184,7 @@ Chamber at target: 63.2C / 63.0C fans=40% (confirm 1/4)
 Chamber stable for 60s - proceeding
 ```
 
-**Level 2** — adds per-tick output (useful for tuning):
+**Level 2**  -  adds per-tick output (useful for tuning):
 ```
 Chamber Heatsoak: 58.4C / 63.0C fans=75%
 Cooldown: bed=114.8C chamber=63.5C fans=100%
@@ -208,7 +208,7 @@ Cooldown: bed=114.8C chamber=63.5C fans=100%
 - Check for enclosure drafts or leaks
 
 **Cooldown takes a long time**
-- Normal for ABS — 60–90 min is expected depending on enclosure insulation
+- Normal for ABS  -  60-90 min is expected depending on enclosure insulation
 - Raise `variable_cooling_threshold` slightly to stop the loop earlier
 
 ### Testing Macros
@@ -224,7 +224,7 @@ TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS ? starts cooldown loop
 
 ---
 
-- Voron 2.4 350mm — Leviathan V1.1, SB2209 CANBUS, 4x bed fans (Nevermore)
+- Voron 2.4 350mm  -  Leviathan V1.1, SB2209 CANBUS, 4x bed fans (Nevermore)
 
 ---
 
