@@ -77,6 +77,16 @@ bedfancoolloop  --?  _BED_FAN_MANAGE (COOLDOWN mode)
 
 ---
 
+## Known Limitations
+
+**The cancel button does not interrupt heatsoak — it queues behind the loop.**
+
+Heatsoak is a blocking gcode loop. All iterations are pre-queued when `CHAMBER_HEATSOAK` is called. Mainsail's cancel button, console commands, and macro calls all go into the same queue — they wait behind the loop and don't execute until it finishes naturally (up to 30 min if chamber never reaches target).
+
+**Escape hatch: use `FIRMWARE_RESTART` from Mainsail for an immediate hard stop.** The printer will need to re-home on the next print.
+
+---
+
 ## Configuration
 
 Edit the `[_BEDFANVARS]` block at the top of `smart_chamber.cfg`. The key variables to set for your printer:
@@ -212,17 +222,6 @@ TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS ? starts cooldown loop
                     # Observe fan behavior and console output
 ```
 
----
-
-## Known Limitations
-
-**The cancel button does not interrupt heatsoak — it queues behind the loop.**
-
-Heatsoak is a blocking gcode loop. All iterations are pre-queued when `CHAMBER_HEATSOAK` is called. Mainsail's cancel button, console commands, and macro calls all go into the same queue — they wait behind the loop and don't execute until it finishes naturally (up to 30 min if chamber never reaches target).
-
-**Escape hatch: use `FIRMWARE_RESTART` from Mainsail for an immediate hard stop.** The printer will need to re-home on the next print.
-
-A PAUSE/RESUME-based redesign would allow the cancel button to work natively — this is a known future improvement.
 ---
 
 - Voron 2.4 350mm — Leviathan V1.1, SB2209 CANBUS, 4x bed fans (Nevermore)
