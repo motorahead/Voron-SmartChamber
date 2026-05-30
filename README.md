@@ -213,7 +213,17 @@ TEST_FAN_COOLDOWN   # Triggers TURN_OFF_HEATERS → starts cooldown loop
 
 ---
 
-## Tested On
+## Known Limitations
+
+**Heatsoak is a blocking operation — cancel does not interrupt it immediately.**
+
+The heatsoak loop pre-queues all iterations when `CHAMBER_HEATSOAK` is called. Hitting cancel in Mainsail queues the cancel request *behind* the remaining loop iterations. The cancel button will spin until the loop finishes naturally (up to 30 min if chamber never reaches target).
+
+**Escape hatch:** Use `FIRMWARE_RESTART` from Mainsail to abort immediately. This is the only way to stop the heatsoak mid-loop. The printer will need to re-home on the next print.
+
+This is a Klipper macro architecture constraint — there is no `while` loop construct, so blocking waits are implemented as pre-queued `{% for %}` loops. A PAUSE/RESUME-based redesign would allow clean cancellation but introduces conflicts with existing PAUSE/RESUME macros and shows the printer as "paused" during heatsoak.
+
+---
 
 - Voron 2.4 350mm — Leviathan V1.1, SB2209 CANBUS, 4x bed fans (Nevermore)
 
