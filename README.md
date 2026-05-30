@@ -29,12 +29,15 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 
 | Feature | Description |
 |---------|-------------|
-| **Bed Protection** | Fans throttle or cut off if bed loses temp during heatsoak — prevents "not heating at expected rate" |
+| **Bed Protection** | Fans throttle or cut off if bed loses temp — prevents "not heating at expected rate" during heatsoak and mid-print |
 | **Proportional Ramping** | Fans ramp in 5% steps with deadband control — no on/off switching |
-| **Stable Confirmation** | Chamber must hold target for X seconds before print starts — avoids false triggers |
-| **Print-Time Maintenance** | Fan loop continues autonomously throughout the print, bed protection included |
+| **Stable Confirmation** | Chamber must hold target for N consecutive passes before print starts — avoids false triggers from brief spikes |
+| **Heatsoak Timeout** | 30 min max wait — proceeds or cancels based on `chamber_min_start`, never hangs indefinitely |
+| **Slicer Fallback** | If slicer sends `CHAMBER=0` or omits it, `chamber_target_default` is used automatically |
+| **Print-Time Maintenance** | Fan loop and bed protection continue autonomously throughout the entire print |
+| **Auto Cooldown** | Cooldown starts on any heaters-off event — print end, cancel, or error — no manual trigger needed |
+| **Clean State on Start** | Reset block clears stale state from previous cancelled or failed prints |
 | **Cooldown Management** | Delta-based fan speed during cooldown — full speed → slow → off |
-| **Min Start Temp** | Optional minimum chamber temp — cancels print if not reached after timeout |
 | **PLA Safety** | Fans stay off entirely for low-temp materials |
 | **LED Hooks** | Optional status macro triggers at heatsoak, cooldown, and complete |
 | **Adaptive Intervals** | Loop timing adjusts by state — faster when recovering, slower when stable or bleeding |
