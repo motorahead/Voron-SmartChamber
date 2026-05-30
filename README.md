@@ -31,7 +31,7 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 |---------|-------------|
 | **Bed Protection** | Fans throttle or cut off if bed loses temp during heatsoak — prevents "not heating at expected rate" |
 | **Proportional Ramping** | Fans ramp in 5% steps with deadband control — no on/off switching |
-| **Stable Confirmation** | Chamber must hold target for 60s before print starts — avoids false triggers |
+| **Stable Confirmation** | Chamber must hold target for X seconds before print starts — avoids false triggers |
 | **Print-Time Maintenance** | Fan loop continues autonomously throughout the print, bed protection included |
 | **Cooldown Management** | Delta-based fan speed during cooldown — full speed → slow → off |
 | **Min Start Temp** | Optional minimum chamber temp — cancels print if not reached after timeout |
