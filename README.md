@@ -2,7 +2,10 @@
 
 Autonomous chamber temperature management for Klipper-based 3D printers.
 
-Inspired by [Ellis bedfans.cfg](https://github.com/VoronDesign/VoronUsers/tree/8e5067f4f6457da8a552983dd210ec48c40be2ca/printer_mods/Ellis/Bed_Fans/Klipper_Macros) and [3DPrintDemon's bed fan monitor](https://github.com/3DPrintDemon/Demon_Klipper_Essentials_Unified).  
+Several approaches to bed fan control exist in the Voron community. [EricZimmerman's fake heater method](https://github.com/EricZimmerman/Voron24/blob/master/config/fans.cfg) uses a `[heater_generic]` block with the chamber thermistor to drive fans via Klipper's PID controller — minimal macro complexity, but no bed protection or heatsoak gating. [Ellis bedfans.cfg](https://github.com/VoronDesign/VoronUsers/tree/8e5067f4f6457da8a552983dd210ec48c40be2ca/printer_mods/Ellis/Bed_Fans/Klipper_Macros) introduced the macro-based approach with bed protection, and [3DPrintDemon's implementation](https://github.com/3DPrintDemon/Demon_Klipper_Essentials_Unified) expanded on that as part of a broader print management system.
+
+SmartChamber builds on these ideas with a focus on closed-loop chamber temperature control: fans ramp proportionally toward a configurable chamber target rather than switching between fixed speeds, a stable confirmation period (60s hold) is required before the print starts, bed protection remains active throughout the print — not just during heatsoak — and cooldown is managed automatically based on the bed/chamber temperature delta. All logic lives in a single drop-in cfg file.
+
 Development supported by Kiro/Claude in addition to functional testing and code verification.
 
 ---
