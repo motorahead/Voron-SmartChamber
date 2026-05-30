@@ -75,18 +75,6 @@ bedfancoolloop  ──►  _BED_FAN_MANAGE (COOLDOWN mode)
 
 ---
 
-## Installation
-
-1. Copy `smart_chamber.cfg` to your Klipper config directory
-2. Add to your `printer.cfg`:
-   ```
-   [include smart_chamber.cfg]
-   ```
-3. Edit `[_BEDFANVARS]` to match your printer (see Configuration below)
-4. Update your `PRINT_START` and `PRINT_END` macros (see Setup below)
-
----
-
 ## Configuration
 
 Edit the `[_BEDFANVARS]` block at the top of `smart_chamber.cfg`. The key variables to set for your printer:
@@ -104,18 +92,29 @@ All other variables are pre-tuned for a Voron 2.4 350mm with 4 bed fans. Each ha
 
 ---
 
-## PRINT_START Setup
+## Installation
 
-> 💡 See a complete working `PRINT_START` implementation at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
+### 1. File setup
 
-### a) At the very top of your PRINT_START, add the reset block:
+1. Copy `smart_chamber.cfg` to your Klipper config directory
+2. Add to your `printer.cfg`:
+   ```
+   [include smart_chamber.cfg]
+   ```
+3. Edit `[_BEDFANVARS]` to match your printer (see Configuration above)
+
+### 2. PRINT_START setup
+
+> 💡 See a complete working example at [motorahead/Voron24-350 printer.cfg](https://github.com/motorahead/Voron24-350/blob/f3062e6b5fda8e9c04e60c185e820d402831bb71/printer_data/config/printer.cfg)
+
+**a) At the very top of PRINT_START, add the reset block:**
 
 ```jinja
 SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_target VALUE=0
 SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_confirm_count VALUE=0
 ```
 
-### b) Replace your existing M190 and bed soak logic with this block:
+**b) Replace your existing M190 and bed soak logic:**
 
 > M190 is called internally — do not add it separately.
 
@@ -135,7 +134,7 @@ SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_confirm_count VALUE=0
 {% endif %}
 ```
 
-## PRINT_END Setup
+### 3. PRINT_END
 
 `TURN_OFF_HEATERS` automatically starts the cooldown loop — no extra steps needed. Optionally show a status message:
 
