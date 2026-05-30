@@ -31,7 +31,7 @@ A typical ABS print session — bed heat-up, chamber heatsoak, print, and cooldo
 |---------|-------------|
 | **Bed Protection** | Fans throttle or cut off if bed loses temp — prevents "not heating at expected rate" during heatsoak and mid-print |
 | **Proportional Ramping** | Fans ramp in 5% steps with deadband control — no on/off switching |
-| **Stable Confirmation** | Chamber must hold target for N consecutive passes before print starts — avoids false triggers from brief spikes |
+| **Stable Confirmation** | Chamber must hold target for X consecutive passes before print starts — avoids false triggers from brief spikes |
 | **Heatsoak Timeout** | 30 min max wait — proceeds or cancels based on `chamber_min_start`, never hangs indefinitely |
 | **Slicer Fallback** | If slicer sends `CHAMBER=0` or omits it, `chamber_target_default` is used automatically |
 | **Print-Time Maintenance** | Fan loop and bed protection continue autonomously throughout the entire print |
