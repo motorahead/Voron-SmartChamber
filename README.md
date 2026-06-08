@@ -173,7 +173,8 @@ Set `variable_debug` in `[_BEDFANVARS]` to control console output:
 **Level 0**  -  milestones only (always shown):
 ```
 [PRINT_START] Bed ready. Starting chamber heatsoak to 63C
-Bed stabilizing before fans start (60s)
+Fan management will begin shortly. Waiting 60s for bed stabilization.
+Fan management active - monitoring chamber.
 Chamber heatsoak complete - stable at 63.2C
 Chamber heatsoak timed out  -  60.1C  -  proceeding anyway
 Bed fans: starting cooldown loop
