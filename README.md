@@ -129,6 +129,8 @@ All other variables are pre-tuned for a Voron 2.4 350mm with 4 bed fans. Each ha
 SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_state VALUE=0
 SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_confirm_count VALUE=0
 SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=last_chamber_temp VALUE=0
+UPDATE_DELAYED_GCODE ID=bedfancoolloop DURATION=0
+UPDATE_DELAYED_GCODE ID=bedfanheatloop DURATION=0
 ```
 
 **b) Replace your existing M190 and bed soak logic:**
