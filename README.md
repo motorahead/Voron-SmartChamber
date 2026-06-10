@@ -79,13 +79,11 @@ bedfancoolloop  -->  _BED_FAN_MANAGE (MODE=FAN_COOLDOWN)
 
 ## Known Limitations
 
-**The cancel button does not interrupt heatsoak  -  it queues behind the loop.**
+**The cancel button does not interrupt heatsoak.**
 
-Heatsoak is a blocking gcode loop. All iterations are pre-queued when `CHAMBER_HEATSOAK` is called. Mainsail's cancel button, console commands, and macro calls all go into the same queue  -  they wait behind the loop and don't execute until it finishes naturally (up to 30 min if chamber never reaches target).
+Heatsoak is a blocking gcode loop  -  Klipper queues all 120 iterations when `CHAMBER_HEATSOAK` is called. Cancel, console commands, and other macros wait behind the loop until it finishes naturally or times out (up to 30 min).
 
-**Escape hatch: use `FIRMWARE_RESTART` from Mainsail for an immediate hard stop.** The printer will need to re-home on the next print.
-
-A PAUSE/RESUME-based redesign would allow the cancel button to work natively - this is a known future improvement.
+**Escape hatch: `FIRMWARE_RESTART` from Mainsail for an immediate hard stop.** The printer will need to re-home on the next print.
 
 ---
 
@@ -205,9 +203,10 @@ Cooldown: bed=114.8C chamber=63.5C fans=100%
 - Set `variable_debug: 2` and watch the console
 
 **Heatsoak times out**
-- Lower `variable_chamber_target_default` if target is too high for your enclosure
 - Verify the chamber sensor reads correctly in Mainsail
-- Set `variable_chamber_min_start` to cancel the print if chamber is too cold to proceed safely
+- Check the chamber target your slicer is sending  -  if it's higher than your enclosure can reach...
+- If no slicer target is set, `variable_chamber_target_default` is used as the fallback  -  lower it if needed
+- `variable_chamber_min_start` controls the safety floor  -  if chamber is below this temp at timeout, the print cancels instead of proceeding
 
 **Bed triggers "not heating at expected rate"**
 - Lower `variable_bed_throttle_slow` to throttle fans sooner
