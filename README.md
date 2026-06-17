@@ -1,5 +1,7 @@
 ﻿# Voron-SmartChamber
 
+> v1.0.0
+
 Autonomous chamber temperature management for Klipper-based 3D printers.
 
 Several approaches to bed fan control inspired this effort:
