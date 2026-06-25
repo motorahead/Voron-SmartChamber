@@ -29,7 +29,7 @@ A typical ABS print session  -  bed heat-up, chamber heatsoak, print, and cooldo
 
 | Feature | Description |
 |---------|-------------|
-| **Slicer Fallback** | If slicer sends `CHAMBER=0` or omits it, `chamber_target_default` is used automatically |
+| **Slicer Fallback** | If slicer sends `CHAMBER=0` or omits it, heatsoak is skipped but fans still manage toward `chamber_target_default` during the print - safety net for forgotten slicer settings, and useful for calibration prints where you want chamber heat without waiting for a full soak |
 | **Bed Protection** | Fans throttle or cut off if bed loses temp - prevents "not heating at expected rate" during heatsoak and mid-print |
 | **Proportional Ramping** | Fans ramp in 5% steps with deadband control - no on/off switching |
 | **Stable Confirmation** | Chamber must reach target and hold within `rate_threshold` C/min change for `chamber_reached_delay` consecutive passes  -  avoids false triggers from brief spikes or overshoots |
@@ -39,7 +39,7 @@ A typical ABS print session  -  bed heat-up, chamber heatsoak, print, and cooldo
 | **Auto Cooldown** | Cooldown starts on any heaters-off event - print end, cancel, or error - no manual trigger needed |
 | **Cooldown Management** | Delta-based fan speed during cooldown - full speed --> slow --> off | **Clean State on Start** | Reset block clears stale state from previous cancelled or failed prints |
 | **Single Config Block** | All tunable parameters in one `[_BEDFANVARS]` section |
-| **PLA Safety** | Fans stay off entirely for low-temp materials - no interference with PLA/PETG |
+| **PLA Safety** | Bed below `heating_threshold` = fans stay off entirely, no interference with PLA/PETG |
 | **LED Hooks** | Optional status macro triggers at heatsoak, cooldown, and complete |
 | **Universal Compatibility** | Any enclosed printer (Voron 2.4, Trident, V0, etc.) - works with Nevermore, bed fans, or any `[fan_generic]` output. Adapts to hardware changes with two config lines - see [Configuration](#configuration) |
 ---
@@ -79,6 +79,22 @@ bedfancoolloop  -->  _BED_FAN_MANAGE (MODE=FAN_COOLDOWN)
 
 ---
 
+## When Do Fans Run?
+
+Fan management depends on two things: **bed temperature** and **chamber target**.
+
+| Bed temp | CHAMBER | Heatsoak | Print-time fans | Example |
+|----------|---------|----------|-----------------|---------|
+| Below `heating_threshold` | any | skipped | off | PLA at 60°C bed |
+| At or above `heating_threshold` | `0` or omitted | skipped | ramp toward `chamber_target_default` | ABS calibration print, no soak needed |
+| At or above `heating_threshold` | `> 0` | runs to target | ramp toward target | ABS production print |
+
+**Bed below threshold** = no fan management at all. This is the PLA/PETG safety gate — the system stays completely out of the way.
+
+**Bed above threshold + CHAMBER=0** = heatsoak is skipped, but fans still manage toward `chamber_target_default` during the print. This is a safety net for forgotten slicer settings, and useful for prints where you want the chamber heating without waiting for a full soak (calibration prints, speed tests, etc).
+
+---
+
 ## Known Limitations
 
 **The cancel button does not interrupt heatsoak.**
@@ -98,7 +114,7 @@ Edit the `[_BEDFANVARS]` block at the top of `smart_chamber.cfg`. The key variab
 | `variable_fan` | Must match your `[fan_generic]` name exactly (case-sensitive) |
 | `variable_chamber_sensor` | Must match your `[temperature_sensor]` name exactly |
 | `variable_heating_threshold` | Min bed temp to enable fans  -  set to your ABS/ASA bed temp |
-| `variable_chamber_target_default` | Fallback chamber target if slicer sends `CHAMBER=0` |
+| `variable_chamber_target_default` | Chamber target used when slicer sends `CHAMBER=0` - fans manage toward this temp without heatsoak |
 | `variable_chamber_min_start` | Min chamber temp to allow print after heatsoak timeout. `0` = disabled |
 | `variable_rate_threshold` | Degrees C/min below which chamber is considered stable. Default `0.5` |
 | `variable_debug` | `0` = milestones only, `1` = state changes, `2` = full per-tick output |
@@ -139,15 +155,15 @@ UPDATE_DELAYED_GCODE ID=bedfanheatloop DURATION=0
 
 ```jinja
 {% if target_bed >= printer["gcode_macro _BEDFANVARS"].heating_threshold %}  # threshold set in smart_chamber.cfg
-    # High-temp path: ABS/ASA  -  heatsoak with autonomous fan management
+    # High-temp path: ABS/ASA  -  fan management active
     SET_GCODE_VARIABLE MACRO=_BEDFANVARS VARIABLE=chamber_state VALUE={target_chamber}
     M190 S{target_bed}                    # fans stay OFF during heat-up
     {% if target_chamber > 0 %}
-        CHAMBER_HEATSOAK                  # ramps fans, waits for stable confirmation, then proceeds
+        CHAMBER_HEATSOAK                  # waits for chamber stability before proceeding
     {% endif %}
-    UPDATE_DELAYED_GCODE ID=bedfanheatloop DURATION=15
+    UPDATE_DELAYED_GCODE ID=bedfanheatloop DURATION=15  # print-time fan management (uses chamber_target_default if CHAMBER=0)
 {% else %}
-    # Low-temp path: PLA/PETG  -  no fans, fixed soak
+    # Low-temp path: PLA/PETG  -  no fan management at all
     M190 S{target_bed}
     G4 P300000                            # 5 min soak
 {% endif %}
