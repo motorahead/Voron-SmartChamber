@@ -1,6 +1,6 @@
 ﻿# Voron-SmartChamber
 
-> v1.0.0
+> v1.0.1
 
 Autonomous chamber temperature management for Klipper-based 3D printers.
 
