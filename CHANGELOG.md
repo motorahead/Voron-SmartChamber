@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-06-27
+### Fixed
+- Cooldown loop no longer starts when bed is already below cooling_threshold (prevents idle timeout spam every 30 min on a cold printer)
+
+### Changed
+- Add inline comments to LED effect conditionals explaining the "off" disable pattern
+
 ## [1.0.1] - 2026-06-24
 ### Changed
 - Document CHAMBER=0 behavior: heatsoak skipped, fans still manage toward chamber_target_default
